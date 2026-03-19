@@ -156,9 +156,12 @@ button{
     <div id="inputs"></div>
   </div>
 
-  <div class="card">
-    <button onclick="runAI()">展開予測</button>
+<div class="card">
+  <div class="top-actions">
+    <button class="small-btn clear-btn" onclick="clearInputs()">🗑 全クリア</button>
+    <button class="small-btn" onclick="runAI()">🚤 展開予測</button>
   </div>
+</div>
 
   <div class="card result" id="result">結果待ち</div>
 
