@@ -227,6 +227,16 @@ function tenjiPower(t){
   return t > 0 ? (7 - t) * 18 : 0;
 }
 
+
+ function clearInputs(){
+  for(let i=1;i<=6;i++){
+    document.getElementById("st"+i).value = "";
+    document.getElementById("tenji"+i).value = "";
+    document.getElementById("m2"+i).value = "";
+    document.getElementById("rate"+i).value = "";
+  }
+  document.getElementById("result").innerHTML = "結果待ち";
+}
 function runAI(){
   const boats = [];
 
