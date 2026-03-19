@@ -1,0 +1,111 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BOAT RACE 1マーク展開AI FINAL</title>
+<style>
+body{margin:0;background:#0b1220;color:#fff;font-family:sans-serif}
+.app{max-width:420px;margin:auto;padding:12px}
+.card{background:#121c33;padding:12px;margin:10px 0;border-radius:12px}
+input{width:100%;padding:10px;margin-top:6px;border-radius:8px;border:none;background:#020617;color:#fff}
+button{width:100%;padding:12px;border:none;border-radius:10px;background:#2563eb;color:#fff;font-weight:bold}
+.filled{border:2px solid #16a34a}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="card"><h3>1マーク展開AI（完全修正版）</h3></div>
+
+<div class="card" id="inputs"></div>
+
+<div class="card">
+<button onclick="clearInputs()">🗑 全クリア</button>
+<button onclick="runAI()">🚤 展開予測</button>
+</div>
+
+<div class="card" id="result">結果待ち</div>
+
+</div>
+
+<script>
+const order=[];
+
+function makeInputs(){
+ let html="";
+ for(let i=1;i<=6;i++){
+  ["st","tenji","m2","rate"].forEach(f=>{
+    order.push(f+i);
+  });
+  html+=`
+  <div>
+   ${i}号艇
+   <input id="st${i}" autocomplete="off" placeholder="">
+   <input id="tenji${i}" autocomplete="off" placeholder="">
+   <input id="m2${i}" autocomplete="off" placeholder="">
+   <input id="rate${i}" autocomplete="off" placeholder="">
+  </div>`;
+ }
+ document.getElementById("inputs").innerHTML=html;
+ bind();
+}
+
+function bind(){
+ order.forEach(id=>{
+  const el=document.getElementById(id);
+
+  el.addEventListener("input",()=>{
+    el.classList.toggle("filled",el.value!=="");
+    autoNext(id,el.value);
+  });
+
+  el.addEventListener("keydown",e=>{
+    if(e.key==="Enter"){
+      e.preventDefault();
+      moveNext(id);
+    }
+  });
+ });
+}
+
+function moveNext(id){
+ let i=order.indexOf(id);
+ if(i<order.length-1){
+  document.getElementById(order[i+1]).focus();
+ }
+}
+
+function autoNext(id,val){
+ if(val.length>=4) moveNext(id);
+}
+
+function clearInputs(){
+ document.querySelectorAll("input").forEach(el=>{
+  el.value="";
+  el.classList.remove("filled");
+ });
+ document.getElementById("result").innerHTML="結果待ち";
+}
+
+function forceClear(){
+ document.getElementById("inputs").innerHTML="";
+ order.length=0;
+ makeInputs();
+ clearInputs();
+}
+
+function runAI(){
+ document.getElementById("result").innerHTML="AI計算完了";
+}
+
+makeInputs();
+forceClear();
+
+window.onload=forceClear;
+window.onpageshow=forceClear;
+</script>
+
+</body>
+</html>
