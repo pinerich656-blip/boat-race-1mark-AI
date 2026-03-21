@@ -82,21 +82,26 @@ function parseF(lines){
   const idx = find(lines, "Ｆ");
   if(idx < 0) return Array(6).fill("なし");
 
-  const raw = [];
-  for(let i = idx - 1; i >= 0 && raw.length < 6; i--){
-    const s = lines[i];
-    if(s === "-" || /^\d+\s*\((未|済)\)$/.test(s)){
-      raw.push(s);
-    }
-  }
+  // Ｆより上を全部見る
+  const upper = lines.slice(0, idx);
 
-  while(raw.length < 6) raw.push("-");
+  // Fっぽいデータだけ抽出
+  const candidates = upper.filter(s =>
+    s === "-" || /^\d+\s*\((未|済)\)$/.test(s)
+  );
 
-  raw.reverse();
+  // 後ろ6つ（6→1）
+  const last6 = candidates.slice(-6);
 
-  return raw.map(v => {
+  // 足りなければ補完
+  while(last6.length < 6) last6.unshift("-");
+
+  // 1→6に並び替え
+  const ordered = last6.reverse();
+
+  return ordered.map(v => {
     if(v === "-" || v === "") return "なし";
-    const m = v.match(/^(\d+)\s*\((未|済)\)$/);
+    const m = v.match(/^(\d+)/);
     return m ? "F" + m[1] : "なし";
   });
 }
