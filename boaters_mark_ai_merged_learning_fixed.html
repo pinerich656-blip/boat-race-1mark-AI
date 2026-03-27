@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BOATERS整形 + 1マーク展開AI 統合版</title>
+<style>
+:root{
+  --bg:#0b1220; --card:#121c33; --line:#22304d; --text:#ffffff; --muted:#9fb0d1;
+  --blue:#2563eb; --cyan:#06b6d4; --green:#16a34a; --gray:#374151;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:linear-gradient(180deg,#08111f,#0d1730);
+  color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+.app{max-width:960px;margin:auto;padding:12px}
+.card{
+  background:var(--card);
+  padding:14px;
+  margin:10px 0;
+  border-radius:16px;
+  border:1px solid var(--line);
+}
+h1,h3{margin:0}
+.small,.palette-help{
+  margin-top:8px;
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.7;
+}
+textarea{
+  width:100%;
+  min-height:170px;
+  border:none;
+  border-radius:12px;
+  padding:12px;
+  background:#08101d;
+  color:#fff;
+  border:1px solid #243352;
+  resize:vertical;
+  font-size:14px;
+  line-height:1.55;
+}
+#boatersRaw{min-height:260px}
+button{
+  width:100%;
+  padding:14px;
+  margin-top:6px;
+  border:none;
+  border-radius:12px;
+  background:linear-gradient(135deg,var(--blue),var(--cyan));
+  color:#fff;
+  font-size:16px;
+  font-weight:800;
+}
+.btn-green{background:linear-gradient(135deg,#0f9f6e,#22c55e)}
+.btn-gray{background:var(--gray)}
+.actions,.top-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+.actions-3{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:8px;
+}
+select,.text-input{
+  width:100%;
+  height:48px;
+  border:none;
+  border-radius:10px;
+  background:#08101d;
+  color:#fff;
+  text-align:center;
+  font-size:14px;
+  font-weight:700;
+  outline:none;
+  border:1px solid #243352;
+}
+.result{line-height:1.8}
+.mark-view{
+  margin-top:12px;
+  padding:12px;
+  border-radius:12px;
+  background:#0d1628;
+  border:1px solid #22304d;
+}
+.mark-title{
+  font-size:13px;
+  font-weight:800;
+  color:#dbeafe;
+  margin-bottom:10px;
+}
+.mark-lane{
+  position:relative;
+  height:120px;
+  border-radius:12px;
+  background:linear-gradient(180deg,#0b1324,#111c32);
+  overflow:hidden;
+}
+.lane-boat{
+  position:absolute;
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:900;
+  font-size:18px;
+  box-shadow:0 6px 16px rgba(0,0,0,.35);
+  transition:all .35s ease;
+}
+.badge{
+  display:inline-block;
+  padding:7px 12px;
+  border-radius:999px;
+  margin:4px 4px 0 0;
+  font-weight:800;
+  font-size:13px;
+}
+.good{background:#16a34a}
+.warn{background:#dc2626}
+.tip{background:#2563eb}
+.gold{background:#f59e0b;color:#111}
+.head-grid,.row-grid{
+  display:grid;
+  grid-template-columns:42px repeat(2,1fr);
+  gap:8px;
+  align-items:center;
+  margin-top:8px;
+}
+.head-cell{
+  text-align:center;
+  font-size:12px;
+  color:var(--muted);
+  font-weight:700;
+}
+.cap{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:48px;
+  border-radius:10px;
+  font-weight:900;
+  font-size:18px;
+}
+.c1{background:#fff;color:#000}
+.c2{background:#000;color:#fff}
+.c3{background:#ef4444;color:#fff}
+.c4{background:#2563eb;color:#fff}
+.c5{background:#f59e0b;color:#000}
+.c6{background:#16a34a;color:#fff}
+.num-wrap{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+.num-input{
+  width:100%;
+  height:48px;
+  border:none;
+  border-radius:10px;
+  background:#08101d;
+  color:#fff;
+  text-align:center;
+  font-size:18px;
+  font-weight:800;
+  outline:none;
+  border:1px solid #243352;
+  appearance:none;
+  -webkit-appearance:none;
+  -moz-appearance:textfield;
+}
+.num-input::-webkit-outer-spin-button,
+.num-input::-webkit-inner-spin-button{
+  -webkit-appearance:none;
+  margin:0;
+}
+.num-label{text-align:center;font-size:11px;color:var(--muted)}
+.comment,.himo-box,.ticket-box,.stat-box{
+  margin-top:10px;
+  padding:12px;
+  border-radius:12px;
+  background:#0d1628;
+  border:1px solid #22304d;
+}
+.himo-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:8px;
+  margin-top:10px;
+}
+pre{
+  margin:0;
+  white-space:pre-wrap;
+  word-break:break-word;
+  font-size:14px;
+  line-height:1.6;
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="card">
+    <h1>BOATERS整形 + 1マーク展開AI 統合版</h1>
+    <div class="palette-help">
+      1つの画面で、<b>BOATERS生データの整形</b>と<b>1マーク展開AI</b>を使えます。<br>
+      手順：BOATERS生データ貼付 → 整形してAIへ送る → 展示/気配入力 → 展開予測
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>① BOATERS生データ貼り付け</h3>
+    <textarea id="boatersRaw" placeholder="boaters の生データをそのまま貼り付け"></textarea>
+    <div class="actions">
+      <button id="btnConvertSet" class="btn-green">整形してAIへ送る</button>
+      <button id="btnClearBoaters" class="btn-gray">整形欄をクリア</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>② 整形結果</h3>
+    <textarea id="pasteData" placeholder="ここに整形済みCSVが入ります"></textarea>
+    <div class="small">
+      形式：艇,F,ST,勝率,モーター2連率,コース別平均ST,コース別2着内率,決まり手（差/捲/捲差）,コース別勝率,今節平均ST,平均スタート順
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>③ 場を選ぶ</h3>
+    <select id="track">
+      <option>桐生</option><option>戸田</option><option>江戸川</option><option>平和島</option><option>多摩川</option>
+      <option>浜名湖</option><option>蒲郡</option><option>常滑</option><option>津</option><option>三国</option>
+      <option>びわこ</option><option>住之江</option><option>尼崎</option><option>鳴門</option><option>丸亀</option>
+      <option>児島</option><option>宮島</option><option>徳山</option><option>下関</option><option selected>若松</option>
+      <option>芦屋</option><option>福岡</option><option>唐津</option><option>大村</option>
+    </select>
+  </div>
+
+  <div class="card">
+    <h3>④ 展示と気配を入力</h3>
+    <div class="head-grid">
+      <div class="head-cell">艇</div>
+      <div class="head-cell">展示</div>
+      <div class="head-cell">気配</div>
+    </div>
+    <div id="inputs"></div>
+    <div class="small">展示タイムと気配だけ後で入れれば予想できます。</div>
+  </div>
+
+  <div class="card">
+    <h3>⑤ 進入想定（任意）</h3>
+    <input id="entryPattern" class="text-input" type="text" placeholder="例：123/456  または 126/345">
+    <div class="small">例：126/345 → 6が内に入り、3がカド想定。</div>
+  </div>
+
+  <div class="card">
+    <h3>⑥ オッズ入力（任意）</h3>
+    <textarea id="oddsText" placeholder="例&#10;1-2-3,8.4&#10;4-5-1,21.7&#10;6-1-2,35.2"></textarea>
+  </div>
+
+  <div class="card">
+    <h3>⑦ 結果学習メモ</h3>
+    <textarea id="learningMemo" placeholder="例&#10;結果 2-1-4&#10;差し本線&#10;4のスジ残り&#10;5-6を軽視しすぎ&#10;外伸び"></textarea>
+    <div class="small">
+      レース後に、実際の結果やズレを書いて蓄積できます。<br>
+      例：差し本線 / まくり強い / イン弱い / 外伸び / スジ決着 / 5-6絡み / 穴目不足
+    </div>
+    <div class="actions-3">
+      <button id="btnApplyLearning" class="btn-green">学習メモを蓄積</button>
+      <button id="btnShowLearning">学習状態を見る</button>
+      <button id="btnResetLearning" class="btn-gray">学習リセット</button>
+    </div>
+    <div id="learningStats" class="stat-box">累積学習：未読込</div>
+  </div>
+
+  <div class="card">
+    <div class="actions-3">
+      <button id="btnClearAll" class="btn-gray">🗑 全クリア</button>
+      <button id="btnPredict">🚤 展開予測</button>
+      <button id="btnSample" class="btn-green">サンプル</button>
+    </div>
+  </div>
+
+  <div class="card result">
+    <div id="result">結果待ち</div>
+    <div id="himoView" class="himo-grid" style="display:none;">
+      <div class="himo-box" id="himoBox1"></div>
+      <div class="himo-box" id="himoBox2"></div>
+    </div>
+    <div id="markView" class="mark-view" style="display:none;">
+      <div class="mark-title">1マーク展開イメージ</div>
+      <div class="mark-lane">
+        <div id="lane1" class="lane-boat c1">1</div>
+        <div id="lane2" class="lane-boat c2">2</div>
+        <div id="lane3" class="lane-boat c3">3</div>
+        <div id="lane4" class="lane-boat c4">4</div>
+        <div id="lane5" class="lane-boat c5">5</div>
+        <div id="lane6" class="lane-boat c6">6</div>
+      </div>
+    </div>
+    <div id="convertDebug" class="stat-box" style="display:none;"></div>
+  </div>
+</div>
+
+<script>
+const TRACK_BIAS = {
+  "桐生":{in:10,sashi:2,makuri:-2,himo:1},"戸田":{in:-5,sashi:8,makuri:6,himo:4},"江戸川":{in:-8,sashi:6,makuri:10,himo:5},
+  "平和島":{in:-3,sashi:5,makuri:5,himo:3},"多摩川":{in:6,sashi:2,makuri:-2,himo:1},"浜名湖":{in:5,sashi:3,makuri:0,himo:2},
+  "蒲郡":{in:10,sashi:2,makuri:-2,himo:1},"常滑":{in:8,sashi:3,makuri:0,himo:1},"津":{in:5,sashi:3,makuri:2,himo:2},
+  "三国":{in:6,sashi:2,makuri:0,himo:1},"びわこ":{in:5,sashi:3,makuri:2,himo:2},"住之江":{in:4,sashi:4,makuri:3,himo:3},
+  "尼崎":{in:7,sashi:3,makuri:1,himo:2},"鳴門":{in:10,sashi:2,makuri:-2,himo:1},"丸亀":{in:10,sashi:2,makuri:-2,himo:1},
+  "児島":{in:5,sashi:4,makuri:3,himo:3},"宮島":{in:7,sashi:3,makuri:1,himo:2},"徳山":{in:10,sashi:2,makuri:-2,himo:1},
+  "下関":{in:9,sashi:2,makuri:-1,himo:1},"若松":{in:8,sashi:3,makuri:0,himo:2},"芦屋":{in:10,sashi:2,makuri:-2,himo:1},
+  "福岡":{in:7,sashi:3,makuri:1,himo:2},"唐津":{in:9,sashi:2,makuri:-1,himo:1},"大村":{in:12,sashi:1,makuri:-3,himo:1}
+};
+
+const LEARNING_KEY = "boaters_mark_ai_learning_v1";
+let cumulativeLearning = {
+  raceCount:0,
+  sashiBoost:0,
+  makuriBoost:0,
+  inPenalty:0,
+  outsideBoost:0,
+  sujiBoost:0,
+  holeBoost:0,
+  comments:[]
+};
+
+function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+
+function saveLearning(){
+  localStorage.setItem(LEARNING_KEY, JSON.stringify(cumulativeLearning));
+}
+
+function loadLearning(){
+  try{
+    const saved = localStorage.getItem(LEARNING_KEY);
+    if(saved){
+      const obj = JSON.parse(saved);
+      cumulativeLearning = {
+        raceCount: Number(obj.raceCount) || 0,
+        sashiBoost: Number(obj.sashiBoost) || 0,
+        makuriBoost: Number(obj.makuriBoost) || 0,
+        inPenalty: Number(obj.inPenalty) || 0,
+        outsideBoost: Number(obj.outsideBoost) || 0,
+        sujiBoost: Number(obj.sujiBoost) || 0,
+        holeBoost: Number(obj.holeBoost) || 0,
+        comments: Array.isArray(obj.comments) ? obj.comments.slice(-8) : []
+      };
+    }
+  }catch(e){}
+  updateLearningStats();
+}
+
+function updateLearningStats(){
+  const el = document.getElementById("learningStats");
+  if(!el) return;
+  const notes = cumulativeLearning.comments.length
+    ? cumulativeLearning.comments.slice(-3).map(x => "・" + x).join("<br>")
+    : "・まだ学習メモなし";
+  el.innerHTML =
+    "累積学習レース数: " + cumulativeLearning.raceCount + "<br>" +
+    "差し補正: +" + cumulativeLearning.sashiBoost + "<br>" +
+    "まくり補正: +" + cumulativeLearning.makuriBoost + "<br>" +
+    "イン弱体補正: -" + cumulativeLearning.inPenalty + "<br>" +
+    "外伸び補正: +" + cumulativeLearning.outsideBoost + "<br>" +
+    "スジ補正: +" + cumulativeLearning.sujiBoost + "<br>" +
+    "穴目補正: +" + cumulativeLearning.holeBoost + "<br>" +
+    "最近の学習:<br>" + notes;
+}
+
+function applyLearningFromMemo(){
+  const memo = (document.getElementById("learningMemo").value || "").trim();
+  if(!memo){
+    alert("学習メモを入れてください。");
+    return;
+  }
+
+  const m = memo.replace(/\r/g, "");
+  if(/差し本線|差し決着|差し/.test(m)) cumulativeLearning.sashiBoost = clamp(cumulativeLearning.sashiBoost + 1, 0, 12);
+  if(/まくり強い|捲り強い|まくり決着|まくり差し|まくり/.test(m)) cumulativeLearning.makuriBoost = clamp(cumulativeLearning.makuriBoost + 1, 0, 12);
+  if(/イン弱い|イン飛び|イン負け|イン逃げ失敗/.test(m)) cumulativeLearning.inPenalty = clamp(cumulativeLearning.inPenalty + 1, 0, 12);
+  if(/外伸び|5-6絡み|6絡み|5絡み|外枠/.test(m)) cumulativeLearning.outsideBoost = clamp(cumulativeLearning.outsideBoost + 1, 0, 12);
+  if(/スジ決着|スジ/.test(m)) cumulativeLearning.sujiBoost = clamp(cumulativeLearning.sujiBoost + 1, 0, 12);
+  if(/穴目|穴決着|万舟|抜け目|穴不足/.test(m)) cumulativeLearning.holeBoost = clamp(cumulativeLearning.holeBoost + 1, 0, 12);
+
+  cumulativeLearning.raceCount += 1;
+  cumulativeLearning.comments.push(m.split("\n").join(" / ").slice(0, 80));
+  cumulativeLearning.comments = cumulativeLearning.comments.slice(-8);
+
+  saveLearning();
+  updateLearningStats();
+  alert("学習メモを蓄積しました。");
+}
+
+function resetLearning(){
+  cumulativeLearning = {
+    raceCount:0,
+    sashiBoost:0,
+    makuriBoost:0,
+    inPenalty:0,
+    outsideBoost:0,
+    sujiBoost:0,
+    holeBoost:0,
+    comments:[]
+  };
+  saveLearning();
+  updateLearningStats();
+  alert("累積学習をリセットしました。");
+}
+
+function showLearningState(){
+  alert(JSON.stringify(cumulativeLearning, null, 2));
+}
+
+function learningSummaryText(){
+  const arr = [];
+  if(cumulativeLearning.sashiBoost) arr.push("差し+" + cumulativeLearning.sashiBoost);
+  if(cumulativeLearning.makuriBoost) arr.push("まくり+" + cumulativeLearning.makuriBoost);
+  if(cumulativeLearning.inPenalty) arr.push("イン-" + cumulativeLearning.inPenalty);
+  if(cumulativeLearning.outsideBoost) arr.push("外+" + cumulativeLearning.outsideBoost);
+  if(cumulativeLearning.sujiBoost) arr.push("スジ+" + cumulativeLearning.sujiBoost);
+  if(cumulativeLearning.holeBoost) arr.push("穴+" + cumulativeLearning.holeBoost);
+  return arr.length ? arr.join(" / ") : "なし";
+}
+
+
+function makeInputs(){
+  let html = "";
+  for(let i=1;i<=6;i++){
+    html += `
+      <div class="row-grid">
+        <div class="cap c${i}">${i}</div>
+        <div class="num-wrap">
+          <input id="tenji${i}" class="num-input" type="text" autocomplete="off" inputmode="decimal" pattern="[0-9.]*">
+          <div class="num-label">展示</div>
+        </div>
+        <div class="num-wrap">
+          <select id="demoST${i}">
+            <option value="0">普</option>
+            <option value="6">良</option>
+            <option value="-6">弱</option>
+          </select>
+          <div class="num-label">気配</div>
+        </div>
+      </div>`;
+  }
+  document.getElementById("inputs").innerHTML = html;
+}
+
+function splitLines(text){ return text.split(/\r?\n/).map(s=>s.replace(/\u00A0/g," ").trim()).filter(Boolean); }
+function isNum(s){ return /^-?\d+(\.\d+)?$/.test(s); }
+function find(lines, keyword, start=0){
+  for(let i=start;i<lines.length;i++) if(lines[i].includes(keyword)) return i;
+  return -1;
+}
+function numsBetween(lines, start, end){
+  const out = [];
+  for(let i=start+1;i<end;i++) if(isNum(lines[i])) out.push(parseFloat(lines[i]));
+  return out;
+}
+function textsBetween(lines, start, end, pattern){
+  const out = [];
+  for(let i=start+1;i<end;i++) if(pattern.test(lines[i])) out.push(lines[i]);
+  return out;
+}
+function pairField(nums, field){
+  const arr = [];
+  for(let i=0;i+1<nums.length;i+=2) arr.push(field===0 ? nums[i] : nums[i+1]);
+  return arr;
+}
+function rev(a){ return a.slice().reverse(); }
+
+function parseF(lines){
+  const idx = find(lines, "Ｆ");
+  if(idx < 0) return Array(6).fill("なし");
+  const upper = lines.slice(0, idx);
+  const candidates = [];
+  for(let i = 0; i < upper.length; i++){
+    const s = upper[i];
+    if(s === "-"){ candidates.push("-"); continue; }
+    if(/^\d+\s*\((未|済)\)$/.test(s)){ candidates.push(s.replace(/\s+/g, "")); continue; }
+    if(/^\d+$/.test(s) && i + 1 < upper.length && /^\((未|済)\)$/.test(upper[i + 1])){
+      candidates.push(s + upper[i + 1]); i++; continue;
+    }
+  }
+  const last6 = candidates.slice(-6);
+  while(last6.length < 6) last6.unshift("-");
+  const ordered = last6.reverse();
+  return ordered.map(v => {
+    if(v === "-" || v === "") return "なし";
+    const m = v.match(/^(\d+)\((未|済)\)$/);
+    return m ? "F" + m[1] : "なし";
+  });
+}
+
+function convertBoatersRaw(raw){
+  const lines = splitLines(raw);
+  if(lines.length < 40){
+    return { ok:false, message:"データ量が足りません。", csv:"" };
+  }
+
+  const idxF = find(lines, "Ｆ");
+  const idxNational = find(lines, "全国勝率");
+  const idxLocal = find(lines, "当地勝率");
+  const idxMotor = find(lines, "モーター", idxLocal + 1);
+  const idxAvgST = find(lines, "平均ST");
+  const idxSession = find(lines, "今節平均ST");
+  const idxCourseData = find(lines, "コース別データ");
+  const idxCourseWin = find(lines, "勝率", idxCourseData + 1);
+  const idxKimari = find(lines, "決まり手", idxCourseWin + 1);
+  const idxCourse2Label = find(lines, "2着内率", idxKimari + 1);
+
+  if([idxF, idxNational, idxLocal, idxMotor, idxAvgST, idxSession, idxCourseData, idxCourseWin, idxKimari].some(x => x < 0)){
+    return {
+      ok:false,
+      message:"見出し不足",
+      csv:"",
+      debug: JSON.stringify({idxF, idxNational, idxLocal, idxMotor, idxAvgST, idxSession, idxCourseData, idxCourseWin, idxKimari}, null, 2)
+    };
+  }
+
+  try{
+    const fVals = parseF(lines);
+
+    const natNums = [];
+    for(let i=idxNational-1; i>=0 && natNums.length<12; i--){
+      if(isNum(lines[i])) natNums.push(parseFloat(lines[i]));
+      if(lines[i].includes("Ｌ")) break;
+    }
+    const wins = pairField(natNums.reverse(), 0).reverse();
+
+    const motorNums = numsBetween(lines, idxLocal, idxMotor);
+    const motor2 = rev(pairField(motorNums, 1));
+
+    const avgNums = [];
+    for(let i=idxAvgST-1; i>=0 && avgNums.length<6; i--){
+      if(isNum(lines[i])) avgNums.push(parseFloat(lines[i]));
+      if(lines[i].includes("スタートデータ")) break;
+    }
+    const avgST = avgNums;
+
+    const sessionNums = numsBetween(lines, idxAvgST, idxSession);
+    const sessionST = rev(pairField(sessionNums, 0));
+    const avgStartRank = rev(pairField(sessionNums, 1));
+
+    const beforeWinNums = numsBetween(lines, idxCourseData, idxKimari);
+    const courseST = rev(pairField(beforeWinNums.slice(0, 12), 0));
+    const courseWin = rev(beforeWinNums.slice(12, 18));
+
+    const kimariEnd = idxCourse2Label > -1 ? idxCourse2Label : lines.length;
+    const kimari = rev(textsBetween(lines, idxCourseWin, kimariEnd, /^\d+\/\d+\/\d+$/).slice(0, 6));
+
+    const course2Raw = [];
+    for(let i = idxKimari + 1; i < lines.length && course2Raw.length < 6; i++){
+      if(isNum(lines[i])) course2Raw.push(parseFloat(lines[i]));
+    }
+    const course2 = course2Raw.reverse();
+
+    const counts = {
+      F: fVals.length, 勝率: wins.length, M2: motor2.length, 平均ST: avgST.length,
+      今節平均ST: sessionST.length, 平均スタート順: avgStartRank.length,
+      コース別平均ST: courseST.length, コース別勝率: courseWin.length,
+      決まり手: kimari.length, コース別2着内率: course2.length
+    };
+
+    if(Math.min(...Object.values(counts)) < 6){
+      return {
+        ok:false,
+        message:"読み取り途中で不足しました。",
+        csv:"",
+        debug:
+          JSON.stringify(counts, null, 2) + "\n\n" +
+          "fVals=" + JSON.stringify(fVals) + "\n" +
+          "wins=" + JSON.stringify(wins) + "\n" +
+          "motor2=" + JSON.stringify(motor2) + "\n" +
+          "avgST=" + JSON.stringify(avgST) + "\n" +
+          "sessionST=" + JSON.stringify(sessionST) + "\n" +
+          "avgStartRank=" + JSON.stringify(avgStartRank) + "\n" +
+          "courseST=" + JSON.stringify(courseST) + "\n" +
+          "courseWin=" + JSON.stringify(courseWin) + "\n" +
+          "kimari=" + JSON.stringify(kimari) + "\n" +
+          "course2=" + JSON.stringify(course2)
+      };
+    }
+
+    const rows = [];
+    for(let i=0;i<6;i++){
+      rows.push([
+        i+1,
+        fVals[i],
+        Number(avgST[i]||0).toFixed(2),
+        Number(wins[i]||0).toFixed(2),
+        Number(motor2[i]||0).toFixed(2),
+        Number(courseST[i]||0).toFixed(2),
+        Number(course2[i]||0).toFixed(2),
+        kimari[i] || "0/0/0",
+        Number(courseWin[i]||0).toFixed(2),
+        Number(sessionST[i]||0).toFixed(2),
+        Number(avgStartRank[i]||0).toFixed(1)
+      ].join(","));
+    }
+
+    const csv = `艇,F,ST,勝率,モーター2連率,コース別平均ST,コース別2着内率,決まり手（差/捲/捲差）,コース別勝率,今節平均ST,平均スタート順\n\n${rows.join("\n")}`;
+    return { ok:true, message:"整形成功", csv:csv };
+  }catch(e){
+    return { ok:false, message:"整形中にエラーが出ました。", csv:"", debug:String(e) };
+  }
+}
+
+function convertAndSet(){
+  const raw = document.getElementById("boatersRaw").value.trim();
+  const debug = document.getElementById("convertDebug");
+  if(!raw){
+    alert("BOATERS生データを貼ってください。");
+    return;
+  }
+  const res = convertBoatersRaw(raw);
+  if(!res.ok){
+    debug.style.display = "block";
+    debug.innerHTML = "<b>整形エラー</b><br><pre>" + (res.message + "\n\n" + (res.debug || "")) + "</pre>";
+    alert(res.message);
+    return;
+  }
+  debug.style.display = "none";
+  document.getElementById("pasteData").value = res.csv;
+  alert("整形してAIへ送りました。");
+}
+
+function parsePasteData(){
+  const raw = document.getElementById("pasteData").value.trim();
+  if(!raw) return [];
+  let lines = raw.split("\n").map(x => x.trim()).filter(Boolean);
+  if(lines.length === 0) return [];
+  if(lines[0].includes("艇") || lines[0].startsWith("枠") || lines[0].startsWith("（")) lines = lines.slice(1);
+
+  const boats = [];
+  lines.forEach(line => {
+    const d = line.split(",").map(x => x.trim());
+    if(d.length < 11) return;
+    const parts = (d[7] || "0/0/0").split("/").map(x => parseFloat(x) || 0);
+    boats.push({
+      boat: parseInt(d[0], 10),
+      f: d[1] || "なし",
+      st: parseFloat(d[2]) || 0,
+      rate: parseFloat(d[3]) || 0,
+      m2: parseFloat(d[4]) || 0,
+      courseST: parseFloat(d[5]) || 0,
+      course2ren: parseFloat(d[6]) || 0,
+      kimariSashi: parts[0] || 0,
+      kimariMakuri: parts[1] || 0,
+      kimariMakurizashi: parts[2] || 0,
+      courseWin: parseFloat(d[8]) || 0,
+      sessionST: parseFloat(d[9]) || 0,
+      avgStartRank: parseFloat(d[10]) || 0
+    });
+  });
+  boats.sort((a,b) => a.boat - b.boat);
+  return boats;
+}
+
+function parseEntryPattern(){
+  const raw = (document.getElementById("entryPattern").value || "").trim();
+  if(!raw) return null;
+  const parts = raw.split("/");
+  if(parts.length !== 2) return null;
+  const inList = parts[0].replace(/[^1-6]/g,"").split("").map(Number).filter(Boolean);
+  const outList = parts[1].replace(/[^1-6]/g,"").split("").map(Number).filter(Boolean);
+  const merged = inList.concat(outList);
+  if(merged.length !== 6) return null;
+  const posMap = {};
+  merged.forEach((boat, idx) => posMap[boat] = idx + 1);
+  let dashStart = inList.length + 1;
+  let kado = dashStart <= 6 ? merged[dashStart - 1] : null;
+  return { merged, posMap, dashStart, kado, inList, outList };
+}
+
+function stPower(st){ return st > 0 ? (0.20 - st) * 120 : 0; }
+function tenjiPower(t){ return t > 0 ? (7 - t) * 18 : 0; }
+function getTenji(i){ const v = parseFloat(document.getElementById("tenji"+i).value); return isNaN(v) ? 0 : v; }
+function getDemoBias(i){ const el = document.getElementById("demoST"+i); return el ? parseFloat(el.value) || 0 : 0; }
+function fPenalty(f){ if(f==="F1") return -8; if(f==="F2") return -15; return 0; }
+
+function getStyle(boat){
+  let score = 0;
+  if(boat.fpenalty < 0) score -= 3;
+  if(boat.st > 0 && boat.st <= 0.13) score += 3; else if(boat.st >= 0.18) score -= 2;
+  if(boat.m2 >= 35) score += 2;
+  if(boat.rate >= 6.0) score += 1;
+  if(boat.demoBias > 0) score += 2; else if(boat.demoBias < 0) score -= 1;
+  if(boat.kimariMakuri >= 2) score += 2;
+  if(boat.kimariMakurizashi >= 1) score += 1;
+  let label = "普通";
+  if(score >= 5) label = "まくり寄り";
+  else if(score >= 2) label = "差し寄り";
+  else if(score <= -2) label = "慎重";
+  return {label, score};
+}
+
+function isBlocked(attacker, boats, entry){
+  const attackerPos = entry && entry.posMap[attacker] ? entry.posMap[attacker] : attacker;
+  if(attackerPos <= 2) return false;
+  const target = boats.find(b => b.boat === attacker);
+  const aheadBoats = boats.filter(b => {
+    const pos = entry && entry.posMap[b.boat] ? entry.posMap[b.boat] : b.boat;
+    return pos >= 2 && pos < attackerPos;
+  });
+  for(let i=0;i<aheadBoats.length;i++){
+    const b = aheadBoats[i];
+    if(b.rate > target.rate || b.m2 > target.m2 || b.course2ren > target.course2ren) return true;
+  }
+  return false;
+}
+
+function isWeakIn(one, entry){
+  let weak = false;
+  if(one.st > 0.15) weak = true;
+  if(one.fpenalty < 0) weak = true;
+  if(one.rate > 0 && one.rate < 5.5) weak = true;
+  if(one.m2 > 0 && one.m2 < 35) weak = true;
+  if(entry && entry.posMap[1] !== 1) weak = true;
+  return weak;
+}
+
+function isWeakWall(two, entry){
+  let weak = (two.rate > 0 && two.rate < 5.0) && (two.m2 > 0 && two.m2 < 25);
+  if(entry && entry.posMap[2] && entry.posMap[2] > 2) weak = true;
+  return weak;
+}
+
+function getAttackScore(boat, laneNo, bias, entry){
+  const style = getStyle(boat);
+  let laneBonus = 0;
+  if(laneNo === 4) laneBonus = 2;
+  if(laneNo === 5) laneBonus = 4;
+  if(laneNo === 6) laneBonus = 6;
+  let score =
+    boat.rate * (laneNo >= 5 ? 6 : 5.5) +
+    boat.m2 * (laneNo >= 5 ? 0.6 : 0.5) +
+    stPower(boat.st) + tenjiPower(boat.tenji) + boat.demoBias + boat.fpenalty +
+    boat.course2ren * 0.15 + boat.kimariMakuri * 3 + boat.kimariMakurizashi * 2 +
+    style.score * 2 + bias.makuri + laneBonus;
+  if(entry){
+    const pos = entry.posMap[boat.boat];
+    if(pos >= entry.dashStart) score += 6;
+    if(boat.boat === entry.kado) score += 12;
+    if(pos >= entry.dashStart && boat.st <= 0.14) score += 8;
+  }
+  return score;
+}
+
+function getHimoScore(boat, scenario, attacker, bias, entry){
+  let score = boat.m2 * 0.8 + boat.rate * 4 + stPower(boat.st) * 0.35 + tenjiPower(boat.tenji) * 0.45 +
+    boat.demoBias + boat.fpenalty + boat.course2ren * 0.25 + boat.courseWin * 0.15;
+  if(boat.m2 >= 40) score += 18;
+  if(boat.st > 0 && boat.st <= 0.15) score += 6;
+  if(boat.fpenalty < 0) score -= 10;
+  if(boat.avgStartRank > 0 && boat.avgStartRank <= 3.5) score += 5;
+  if(scenario === "イン逃げ"){
+    if(boat.boat === 3) score += 10;
+    if(boat.boat >= 5 && boat.m2 >= 38) score += 14 + cumulativeLearning.outsideBoost;
+  } else if(scenario === "差し"){
+    if(boat.boat === 1) score += 8;
+    if(boat.boat >= 5 && boat.m2 >= 38) score += 16 + cumulativeLearning.outsideBoost;
+  } else {
+    if(boat.boat === 1) score += 10;
+    if(boat.boat === 2) score += 8;
+    if(boat.boat >= 5 && boat.m2 >= 38) score += 18 + cumulativeLearning.outsideBoost;
+  }
+  if(entry && entry.posMap[boat.boat] >= entry.dashStart) score += 4;
+  score += bias.himo || 0;
+  if(attacker === boat.boat) score -= 999;
+  return score;
+}
+
+function parseOdds(){
+  const raw = document.getElementById("oddsText");
+  if(!raw) return {};
+  const lines = raw.value.split("\n").map(x => x.trim()).filter(Boolean);
+  const map = {};
+  lines.forEach(line => {
+    const parts = line.split(",");
+    if(parts.length < 2) return;
+    const key = parts[0].trim();
+    const val = parseFloat(parts[1].trim());
+    if(key && !isNaN(val)) map[key] = val;
+  });
+  return map;
+}
+
+function getSujiLane(attacker){
+  if(attacker === 3) return 4;
+  if(attacker === 4) return 5;
+  if(attacker === 5) return 6;
+  return null;
+}
+
+function buildTickets(fixed, himoCandidates, scenario, attacker, entry){
+  const tickets = [];
+  const head = fixed[0], second = fixed[1];
+  const h = himoCandidates.map(x => x.boat);
+
+  function pushTicket(bet, base, note){
+    if(!bet) return;
+    const parts = bet.split("-").map(Number);
+    if(new Set(parts).size !== 3) return;
+    for(let i=0;i<tickets.length;i++) if(tickets[i].bet === bet) return;
+    tickets.push({bet, base, note});
+  }
+
+  pushTicket(head+"-"+second+"-"+h[0], 100, "本線");
+  pushTicket(head+"-"+second+"-"+h[1], 92, "本線");
+  pushTicket(head+"-"+h[0]+"-"+second, 82, "押さえ");
+  pushTicket(second+"-"+head+"-"+h[0], 76, "逆転");
+  pushTicket(head+"-"+h[0]+"-"+h[1], 72, "穴目");
+
+  const suji = getSujiLane(attacker);
+  if((scenario === "まくり" || scenario === "まくり差し") && suji){
+    pushTicket(attacker+"-"+suji+"-1", 96 + cumulativeLearning.sujiBoost * 3, "スジ本線");
+    pushTicket(attacker+"-"+suji+"-2", 90 + cumulativeLearning.sujiBoost * 3, "スジ本線");
+    pushTicket(attacker+"-1-"+suji, 84 + cumulativeLearning.sujiBoost * 2, "内残り");
+    pushTicket(attacker+"-2-"+suji, 78 + cumulativeLearning.sujiBoost * 2, "内残り");
+    pushTicket(attacker+"-"+suji+"-"+h[0], 74 + cumulativeLearning.sujiBoost * 2 + cumulativeLearning.holeBoost, "スジ穴");
+  }
+
+  if(entry && entry.kado && attacker === entry.kado){
+    const suji2 = getSujiLane(attacker);
+    if(suji2){
+      pushTicket(attacker+"-"+suji2+"-"+h[0], 98, "カド本線");
+      pushTicket(attacker+"-"+suji2+"-1", 94, "カド内残り");
+      pushTicket(attacker+"-"+suji2+"-2", 90, "カド内残り");
+    }
+  }
+
+  if(scenario === "差し"){
+    pushTicket("2-1-"+h[0], 98, "差し本線");
+    pushTicket("2-1-"+h[1], 86, "差し本線");
+    pushTicket("2-"+h[0]+"-1", 72, "差し穴");
+  }
+
+  if(scenario === "イン逃げ"){
+    pushTicket("1-2-"+h[2], 70, "押さえ");
+    pushTicket("1-3-2", 68, "相手流れ");
+  }
+
+  return tickets;
+}
+
+function rankTicketsByOdds(tickets, oddsMap){
+  return tickets.map(t => {
+    const odds = oddsMap[t.bet] || 0;
+    let evScore = t.base;
+    if(odds > 0) evScore = t.base * Math.min(odds, 30);
+    return { bet:t.bet, base:t.base, odds:odds, evScore:evScore, note:t.note };
+  }).sort((a,b) => b.evScore - a.evScore);
+}
+
+function drawMarkView(scenario, attacker, entry){
+  const markView = document.getElementById("markView");
+  markView.style.display = "block";
+  const basePos = {
+    1:{left:"8px",top:"62px"},2:{left:"62px",top:"62px"},3:{left:"116px",top:"62px"},
+    4:{left:"170px",top:"62px"},5:{left:"224px",top:"62px"},6:{left:"278px",top:"62px"}
+  };
+  for(let i=1;i<=6;i++){
+    const el = document.getElementById("lane"+i);
+    const p = basePos[i];
+    el.style.left = p.left;
+    el.style.top = p.top;
+  }
+
+  if(entry){
+    const ordered = entry.merged;
+    ordered.forEach((boat, idx) => {
+      const el = document.getElementById("lane"+boat);
+      el.style.left = (8 + idx*46) + "px";
+      el.style.top = idx < entry.inList.length ? "62px" : "78px";
+    });
+  }
+
+  if(scenario === "イン逃げ"){
+    document.getElementById("lane1").style.left="70px";
+    document.getElementById("lane1").style.top="18px";
+    document.getElementById("lane2").style.left="132px";
+    document.getElementById("lane2").style.top="42px";
+    document.getElementById("lane3").style.left="186px";
+    document.getElementById("lane3").style.top="56px";
+  } else if(scenario === "差し"){
+    document.getElementById("lane2").style.left="92px";
+    document.getElementById("lane2").style.top="20px";
+    document.getElementById("lane1").style.left="146px";
+    document.getElementById("lane1").style.top="42px";
+    document.getElementById("lane3").style.left="208px";
+    document.getElementById("lane3").style.top="58px";
+  } else {
+    document.getElementById("lane"+attacker).style.left="84px";
+    document.getElementById("lane"+attacker).style.top="16px";
+    const suji = getSujiLane(attacker);
+    if(suji){
+      document.getElementById("lane"+suji).style.left="146px";
+      document.getElementById("lane"+suji).style.top="34px";
+      document.getElementById("lane1").style.left="210px";
+      document.getElementById("lane1").style.top="54px";
+    } else {
+      document.getElementById("lane1").style.left="154px";
+      document.getElementById("lane1").style.top="42px";
+      document.getElementById("lane2").style.left="218px";
+      document.getElementById("lane2").style.top="60px";
+    }
+  }
+}
+
+function clearBoatersOnly(){
+  document.getElementById("boatersRaw").value = "";
+  document.getElementById("pasteData").value = "";
+  const debug = document.getElementById("convertDebug");
+  debug.style.display = "none";
+  debug.innerHTML = "";
+}
+
+function clearAll(){
+  clearBoatersOnly();
+  document.getElementById("entryPattern").value = "";
+  document.getElementById("oddsText").value = "";
+  document.getElementById("track").value = "若松";
+  for(let i=1;i<=6;i++){
+    document.getElementById("tenji"+i).value = "";
+    document.getElementById("demoST"+i).value = "0";
+  }
+  document.getElementById("result").innerHTML = "結果待ち";
+  document.getElementById("markView").style.display = "none";
+  document.getElementById("himoView").style.display = "none";
+}
+
+function fillSample(){
+  document.getElementById("pasteData").value =
+`艇,F,ST,勝率,モーター2連率,コース別平均ST,コース別2着内率,決まり手（差/捲/捲差）,コース別勝率,今節平均ST,平均スタート順
+
+1,なし,0.17,7.31,36.36,0.15,87.50,0/0/0,76.78,0.11,3.0
+2,なし,0.17,5.99,29.51,0.13,50.00,5/0/0,16.66,0.14,2.8
+3,F1,0.16,5.89,32.31,0.15,45.16,0/1/3,12.90,0.19,3.1
+4,なし,0.18,6.12,32.31,0.17,18.18,1/3/1,11.36,0.14,2.1
+5,なし,0.13,6.34,24.62,0.11,37.14,0/3/1,11.42,0.12,2.4
+6,なし,0.16,5.51,55.00,0.16,12.82,0/1/0,2.56,0.14,2.8`;
+  document.getElementById("track").value = "若松";
+  const tenji = {1:"6.95",2:"6.93",3:"6.94",4:"6.97",5:"6.92",6:"6.91"};
+  for(let i=1;i<=6;i++) document.getElementById("tenji"+i).value = tenji[i];
+}
+
+function runAI(){
+  const boats = parsePasteData();
+  if(boats.length < 6){
+    document.getElementById("result").innerHTML = "整形済みデータ欄に6艇分のデータを入れてください。";
+    document.getElementById("markView").style.display = "none";
+    document.getElementById("himoView").style.display = "none";
+    return;
+  }
+
+  const track = document.getElementById("track").value;
+  const bias = TRACK_BIAS[track] || {in:0,sashi:0,makuri:0,himo:0};
+  const entry = parseEntryPattern();
+  const learn = cumulativeLearning;
+
+  boats.forEach((boat, idx) => {
+    const n = idx + 1;
+    boat.tenji = getTenji(n);
+    boat.demoBias = getDemoBias(n);
+    boat.fpenalty = fPenalty(boat.f);
+  });
+
+  const one = boats.find(b => b.boat === 1);
+  const two = boats.find(b => b.boat === 2);
+
+  let inEscape = one.rate * 8 + one.m2 * 0.5 + stPower(one.st) + tenjiPower(one.tenji) + one.demoBias + one.fpenalty + one.courseWin * 0.12 + one.course2ren * 0.12 + bias.in - learn.inPenalty * 2;
+  if(entry && entry.posMap[1] !== 1) inEscape -= 18;
+
+  const sashi = two.rate * 6 + two.m2 * 0.4 + stPower(two.st) + tenjiPower(two.tenji) + two.demoBias + (one.fpenalty * -0.5) + two.fpenalty + two.course2ren * 0.15 + two.kimariSashi * 2 + bias.sashi + learn.sashiBoost * 2;
+
+  const weakIn = isWeakIn(one, entry);
+  const weakWall = isWeakWall(two, entry);
+  if(weakIn) inEscape *= 0.85;
+
+  const attackCandidates = boats.filter(b => b.boat >= 3).map((boat) => {
+    const laneNo = entry && entry.posMap[boat.boat] ? entry.posMap[boat.boat] : boat.boat;
+    let score = getAttackScore(boat, laneNo, bias, entry);
+    const blocked = isBlocked(boat.boat, boats, entry);
+    if(!blocked) score += 10;
+    if(weakWall) score += 15;
+    if(laneNo >= 5) score += learn.outsideBoost * 2;
+    score += learn.makuriBoost * 2;
+    return { boat: boat.boat, score: score, blocked: blocked, laneNo: laneNo };
+  }).sort((a,b) => b.score - a.score);
+
+  const bestAttack = attackCandidates[0];
+  let attacker = bestAttack.boat;
+  let makuri = bestAttack.score;
+  const blocked = bestAttack.blocked;
+
+  let scenario = "イン逃げ";
+  if(inEscape < sashi && sashi > makuri){
+    scenario = "差し";
+    attacker = 2;
+  } else if(makuri > inEscape * 1.05 && !blocked && weakIn){
+    scenario = "まくり";
+  } else if(makuri > inEscape * 0.95){
+    scenario = "まくり差し";
+  }
+
+  let fixed = [];
+  if(scenario === "イン逃げ") fixed = [1,2];
+  else if(scenario === "差し") fixed = [2,1];
+  else if(scenario === "まくり") fixed = [attacker,1];
+  else fixed = [attacker,2];
+
+  const himoCandidates = boats.filter(b => fixed.indexOf(b.boat) === -1).map(b => ({
+    boat:b.boat,
+    score:getHimoScore(b, scenario, attacker, bias, entry),
+    m2:b.m2,
+    rate:b.rate
+  })).sort((a,b) => b.score - a.score);
+
+  const himo1 = himoCandidates[0];
+  const himo2 = himoCandidates[1];
+  const order = fixed[0] + "-" + fixed[1] + "-" + himo1.boat;
+
+  const risk = Math.max(0, sashi + makuri - inEscape);
+  let riskText = "低", riskClass = "good";
+  if(risk > 50){ riskText = "高"; riskClass = "warn"; }
+  else if(risk > 25){ riskText = "中"; riskClass = "tip"; }
+
+  let comment = "";
+  if(scenario === "イン逃げ") comment = "①が先マイして押し切る展開。";
+  else if(scenario === "差し") comment = "②が差して①を捕らえる展開。";
+  else if(scenario === "まくり") comment = attacker + "が一気に攻め切る展開。";
+  else comment = attacker + "が展開を突いて、まくり差し気味に入る展開。";
+
+  const suji = getSujiLane(attacker);
+  const sujiText = suji ? (attacker + "-" + suji + " のスジを重視") : "スジは薄め";
+  const entryText = entry ? ("進入：" + entry.inList.join("") + "/" + entry.outList.join("") + " / カド：" + (entry.kado || "-")) : "進入：標準";
+  const biasText = "場補正：" + track + " / イン " + (bias.in >= 0 ? "+" : "") + bias.in + " / 差し " + (bias.sashi >= 0 ? "+" : "") + bias.sashi + " / まくり " + (bias.makuri >= 0 ? "+" : "") + bias.makuri;
+  const learningText = "累積学習：" + learningSummaryText();
+
+  document.getElementById("result").innerHTML =
+    '<div class="badge gold">' + track + '</div>' +
+    '<div class="badge tip">展開タイプ：' + scenario + '</div>' +
+    '<div class="badge good">攻め艇：' + attacker + '号艇</div>' +
+    '<div class="badge ' + riskClass + '">危険度：' + riskText + '</div>' +
+    '<div class="comment">' +
+    '<b>' + biasText + '</b><br>' +
+    '<b>' + entryText + '</b><br><br>' +
+    '<b>1マーク通過予想：</b> ' + order + '<br>' +
+    '<b>イン逃げ指数：</b> ' + inEscape.toFixed(1) + '<br>' +
+    '<b>差し圧：</b> ' + sashi.toFixed(1) + '<br>' +
+    '<b>まくり圧：</b> ' + makuri.toFixed(1) + '<br>' +
+    '<b>壁判定：</b> ' + (blocked ? "あり" : "なし") + '<br>' +
+    '<b>イン弱体：</b> ' + (weakIn ? "あり" : "なし") + '<br>' +
+    '<b>2弱壁：</b> ' + (weakWall ? "あり" : "なし") + '<br>' +
+    '<b>スジ評価：</b> ' + sujiText + '<br>' +
+    '<b>学習補正：</b> ' + learningText + '<br>' +
+    '<b>コメント：</b> ' + comment +
+    '</div>';
+
+  document.getElementById("himoView").style.display = "grid";
+  document.getElementById("himoBox1").innerHTML = '<b>3着候補①</b><br>' + himo1.boat + '号艇<br>評価: ' + himo1.score.toFixed(1) + '<br>M2: ' + himo1.m2 + ' / 勝率: ' + himo1.rate;
+  document.getElementById("himoBox2").innerHTML = '<b>3着候補②</b><br>' + himo2.boat + '号艇<br>評価: ' + himo2.score.toFixed(1) + '<br>M2: ' + himo2.m2 + ' / 勝率: ' + himo2.rate;
+
+  const tickets = buildTickets(fixed, himoCandidates, scenario, attacker, entry);
+  const oddsMap = parseOdds();
+  const rankedTickets = rankTicketsByOdds(tickets, oddsMap);
+  const topTickets = rankedTickets.slice(0, 8);
+
+  document.getElementById("result").innerHTML += '<div class="ticket-box"><b>推奨買い目（進入・スジ考慮）</b><br>' +
+    topTickets.map(function(t){
+      return t.bet + ' / ' + t.note + (t.odds > 0 ? ' / オッズ ' + t.odds : '') + ' / 評価 ' + t.evScore.toFixed(1);
+    }).join("<br>") +
+    '</div>';
+
+  drawMarkView(scenario, attacker, entry);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  makeInputs();
+  clearAll();
+  document.getElementById("btnConvertSet").addEventListener("click", convertAndSet);
+  document.getElementById("btnClearBoaters").addEventListener("click", clearBoatersOnly);
+  document.getElementById("btnClearAll").addEventListener("click", clearAll);
+  document.getElementById("btnPredict").addEventListener("click", runAI);
+  document.getElementById("btnSample").addEventListener("click", fillSample);
+  document.getElementById("btnApplyLearning").addEventListener("click", applyLearningFromMemo);
+  document.getElementById("btnShowLearning").addEventListener("click", showLearningState);
+  document.getElementById("btnResetLearning").addEventListener("click", resetLearning);
+  loadLearning();
+});
+</script>
+</body>
+</html>
