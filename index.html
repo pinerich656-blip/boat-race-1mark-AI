@@ -104,40 +104,39 @@
       }
 
       // --- データ整形：数字の塊から脚質を自動判定 ---
-            function convertRawToCsv(raw) {
+                  function convertRawToCsv(raw) {
         const rows = [];
-        // 以前のシンプルさに戻す：数字と漢字の名前（11谷口、22高橋、7川口）を基準に分割
+        // 名前（漢字）で分割
         const segments = raw.split(/(\d+[一-龠]{2,4})/);
         
-        // 分割したデータの「名前」と「その後のデータ」をペアで処理
         for (let i = 1; i < segments.length; i += 2) {
-          const namePart = segments[i];      // 「11谷口遼平」
-          const dataPart = segments[i + 1];  // 「三重132歳103期10600910...」
+          const namePart = segments[i];
+          const dataPart = segments[i + 1];
 
           if (!dataPart) continue;
 
           // 数字だけを抜き出す
           const nums = dataPart.match(/\d+/g) || [];
-          if (nums.length < 5) continue;
+          if (nums.length < 10) continue;
 
           // 車番を名前の先頭から取得
           const carNum = namePart.match(/^\d+/)?.[0] || (rows.length + 1);
 
-          // 以前の並び順に近い形でマッピング（ユタカのデータに合わせた実測値）
-          const score = (parseFloat(nums[2] || 0) / 100).toFixed(2); // 得点 10600
-          const win   = parseFloat(nums[7] || 0).toFixed(1);         // 勝率
-          const ren2  = Number(nums[8]) || 0;                        // 2連
-          const ren3  = Number(nums[9]) || 0;                        // 3連
-          const s     = Number(nums[10]) || 0;                       // S
-          const b     = Number(nums[11]) || 0;                       // B
+          // 【ここを調整！】ユタカのデータ（三重132歳103期10600...）に合わせた並び
+          // nums[0]...県名の中の数字(あれば), nums[1]...歳, nums[2]...期, nums[3]...得点
+          const score = (parseFloat(nums[3] || 0) / 100).toFixed(2); 
+          const win   = parseFloat(nums[8] || 0).toFixed(1);  // 勝率
+          const ren2  = Number(nums[9]) || 0;                 // 2連対率
+          const ren3  = Number(nums[10]) || 0;                // 3連対率
+          const s     = Number(nums[11]) || 0;                // S
+          const b     = Number(nums[12]) || 0;                // B
 
-          // 脚質判定
           let style = '両';
           if (dataPart.includes('逃') || dataPart.includes('自力')) style = '逃';
           else if (dataPart.includes('追') || dataPart.includes('差')) style = '追';
 
           rows.push({
-            car: carNum.length > 1 ? carNum[0] : carNum, // 11なら1にする
+            car: carNum.length > 1 ? carNum[0] : carNum, 
             score: score, b: b, s: s, style: style, win: win, quinella: ren2, trio: ren3
           });
         }
@@ -146,6 +145,7 @@
         return '車番,得点,B,S,脚質,勝率,2連対率,3連対率\n' + 
                rows.map(r => `${r.car},${r.score},${r.b},${r.s},${r.style},${r.win},${r.quinella},${r.trio}`).join('\n');
       }
+
 
 
       function parseCSV(text) {
