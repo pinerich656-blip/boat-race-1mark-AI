@@ -104,7 +104,7 @@
       }
 
       // --- データ整形：数字の塊から脚質を自動判定 ---
-             function convertRawToCsv(raw) {
+                   function convertRawToCsv(raw) {
         const clean = raw.replace(/\s+/g, '');
         const rows = [];
         // 選手名（漢字）と、それに続く長い数字の塊をセットで拾う
@@ -145,6 +145,7 @@
         return '車番,得点,B,S,脚質,勝率,2連対率,3連対率\n' + 
                rows.map(r => `${r.car},${r.score},${r.b},${r.s},${r.style},${r.win},${r.quinella},${r.trio}`).join('\n');
       }
+
 
 
 
