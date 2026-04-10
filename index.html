@@ -172,44 +172,69 @@
         renderResult(sorted, structure);
       });
 
-            function renderResult(scored, structure) {
-        document.getElementById('result').classList.remove('hidden');
-        document.getElementById('resultEmpty').classList.add('hidden');
+      function renderResult(scored, structure) {
+        // 1. まず非表示にしていた結果エリアを表示する
+        const resDiv = document.getElementById('result');
+        const emptyDiv = document.getElementById('resultEmpty');
+        if (resDiv) resDiv.classList.remove('hidden');
+        if (emptyDiv) emptyDiv.classList.add('hidden');
+
+        // 2. レース構造と結論を表示
         document.getElementById('structureText').textContent = `構造: ${structure}`;
         document.getElementById('conclusionText').textContent = `${scored[0].num}番を軸に評価。`;
         
+        // 3. 選手スコアテーブルの作成
         const tbody = document.querySelector('#scoreTable tbody');
-        tbody.innerHTML = '';
-        scored.forEach(r => {
-          const tr = document.createElement('tr');
-          if (r.ai.total >= 1.9) tr.className = 'score-high';
-          else if (r.ai.total >= 1.5) tr.className = 'score-mid';
-          tr.innerHTML = `<td>${r.num}</td><td>${r.ai.front.toFixed(1)}</td><td>${r.ai.initiative.toFixed(1)}</td><td>${r.ai.anchor.toFixed(1)}</td><td>${r.ai.late.toFixed(1)}</td><td>${r.ai.elite.toFixed(1)}</td><td>${r.ai.soloRisk.toFixed(1)}</td><td>${r.ai.total.toFixed(2)}</td><td>ライン${(r.pos?.team+1)||'単'}</td>`;
-          tbody.appendChild(tr);
-        });
+        if (tbody) {
+          tbody.innerHTML = '';
+          scored.forEach(r => {
+            const tr = document.createElement('tr');
+            if (r.ai.total >= 1.9) tr.className = 'score-high';
+            else if (r.ai.total >= 1.5) tr.className = 'score-mid';
+            
+            const memo = `ライン${(r.pos?.team + 1) || '単'}`;
+            tr.innerHTML = `
+              <td>${r.num}</td>
+              <td>${r.ai.front.toFixed(1)}</td>
+              <td>${r.ai.initiative.toFixed(1)}</td>
+              <td>${r.ai.anchor.toFixed(1)}</td>
+              <td>${r.ai.late.toFixed(1)}</td>
+              <td>${r.ai.elite.toFixed(1)}</td>
+              <td>${r.ai.soloRisk.toFixed(1)}</td>
+              <td>${r.ai.total.toFixed(2)}</td>
+              <td>${memo}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
         
-        // --- ここで買い目を作って保存する ---
+        // 4. 買い目（本線・対抗）の生成
         const top = scored[0].num;
-        const s2 = scored[1]?.num;
-        const s3 = scored[2]?.num;
-        const s4 = scored[3]?.num;
+        const s2 = scored[1] ? scored[1].num : '';
+        const s3 = scored[2] ? scored[2].num : '';
+        const s4 = scored[3] ? scored[3].num : '';
 
-        // 本線・対抗の買い目リスト
-        const mainBets = [`${top}-${s2}-${s3}`, `${top}-${s2}-${s4}`].filter(v => !v.includes('undefined'));
-        const subBets = [`${top}-${s3}-${s2}`, `${top}-${s3}-${s4}`, `${s2}-${top}-${s3}`].filter(v => !v.includes('undefined'));
+        const mainBets = [];
+        if (top && s2 && s3) mainBets.push(`${top}-${s2}-${s3}`);
+        if (top && s2 && s4) mainBets.push(`${top}-${s2}-${s4}`);
 
-        // 画面のリストを表示
+        const subBets = [];
+        if (top && s3 && s2) subBets.push(`${top}-${s3}-${s2}`);
+        if (top && s3 && s4) subBets.push(`${top}-${s3}-${s4}`);
+        if (s2 && top && s3) subBets.push(`${s2}-${top}-${s3}`);
+
+        // 5. 画面に買い目を表示
         document.getElementById('mainLine').innerHTML = mainBets.map(v => `<li class="bet-main">${v}</li>`).join('');
         document.getElementById('subLine').innerHTML = subBets.map(v => `<li class="bet-sub">${v}</li>`).join('');
 
-        // ★これが重要！的中チェックがこれを見て判定するよ
+        // 6. 重要：的中チェック用にデータをグローバル変数に保存
+        // (関数の一番外で let latestResult = null; と宣言されている前提)
         latestResult = { 
-          scored: scored, 
-          structure: structure, 
           main: mainBets, 
           sub: subBets 
         };
       }
+
 
 
       function parseCSV(text) {
