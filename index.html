@@ -491,43 +491,51 @@
         return rows;
       }
 
-      function convertRawToCsv(raw) {
-        const lines = splitLines(raw);
-        let rows = [];
-
-        // 1. 従来の形式を試す
-        rows = convertTableStyle(lines);
-        if (rows.length === 0) rows = convertLinkedStyle(lines);
-        if (rows.length > 0) return createCsvOutput(rows);
-
-        // 2. 【超・高感度解析】詰まった1行データ用
-        const joined = lines.join(' ');
+            function convertRawToCsv(raw) {
+        // 全体の空白や改行を一旦整理
+        const cleanRaw = raw.replace(/\s+/g, '');
+        const rows = [];
         
-        // 「漢字（名前・県名）」の後に続く「数字の塊」をセットで探す
-        // 漢字の塊([一-龠ぁ-んァ-ヶー]+) ＋ 数字やドットの塊([\d\.\s]+)
-        const playerBlocks = joined.match(/([一-龠ぁ-んァ-ヶー]{3,})\s*([\d\.\s]{10,})/g);
+        // 選手ごとに分割するための正規表現
+        // 名前（漢字）＋県名（漢字）＋年齢（2桁）＋得点（4桁）...のパターンを探す
+        const playerRegex = /([一-龠]{2,})([一-龠]{2,})(\d{2})(\d{4})(\d{1,2})(\d{1,2})(\d{1,2})/g;
+        let m;
+        let carCount = 1;
 
-        if (playerBlocks) {
-          playerBlocks.forEach((block, index) => {
-            // ブロック内から数字（得点、勝率、B、Sなど）をすべて抜き出す
-            const nums = block.match(/\d+(\.\d+)?/g) || [];
-            
-            if (nums.length >= 5) {
-              // データの並び順から推測して割り当て
-              // nums[0]はおそらく年齢、nums[1]が得点、という具合に調整
-              rows.push({
-                car: index + 1,
-                score: parseFloat(nums[1]) || parseFloat(nums[0]) || 0,
-                b: Number(nums[5]) || 0,
-                s: Number(nums[4]) || 0,
-                style: '両',
-                win: parseFloat(nums[8]) || 0,
-                ren2: parseFloat(nums[9]) || 0,
-                ren3: parseFloat(nums[10]) || 0
-              });
-            }
+        while ((m = playerRegex.exec(cleanRaw)) !== null) {
+          const name = m[1];   // 名前
+          const pref = m[2];   // 県名
+          const age = m[3];    // 年齢
+          const scoreRaw = m[4]; // 9189 とかの4桁
+          
+          // 得点を「91.89」の形式に直す
+          const score = (parseFloat(scoreRaw) / 100).toFixed(2);
+
+          rows.push({
+            car: carCount++,
+            score: score,
+            b: 0, 
+            s: 0,
+            style: '自在', // 判定が難しいため一旦固定
+            win: m[5] || 0,
+            ren2: m[6] || 0,
+            ren3: m[7] || 0
           });
         }
+
+        if (rows.length === 0) {
+          return "変換エラー：データが解析できませんでした。";
+        }
+
+        return [
+          '車番,得点,B,S,脚質,勝率,2連対率,3連対率',
+          ...rows.map(r => [
+            r.car, r.score, r.b, r.s, r.style,
+            r.win, r.ren2, r.ren3
+          ].join(','))
+        ].join('\n');
+      }
+
 
         if (rows.length > 0) {
           return createCsvOutput(rows);
