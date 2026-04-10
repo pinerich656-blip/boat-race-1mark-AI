@@ -106,27 +106,51 @@
       }
 
       // --- ユタカ特製：データ解析ロジック ---
-      function convertRawToCsv(raw) {
+            function convertRawToCsv(raw) {
+        // スペースを消して、扱いやすくする
         const cleanRaw = raw.replace(/\s+/g, '');
         const rows = [];
-        const playerRegex = /([一-龠]{2,})([一-龠]{2,})(\d{2})(\d{4})(\d+)/g;
+        
+        // ユタカのデータ形式に特化した切り出しナイフ
+        // 漢字(名前) + 県名 + 年齢(2桁) + 得点(5桁程度) + 各種データ
+        const playerRegex = /([一-龠]{2,})[一-龠]{2}\d{2}(\d{5,})/g;
+        
         let m, carCount = 1;
         while ((m = playerRegex.exec(cleanRaw)) !== null) {
-          const scoreStr = m[4];
-          const tailNums = m[5];
-          const n = tailNums.match(/.{1,2}/g) || [];
+          const name = m[1];
+          const dataStr = m[2]; // 得点以降の数字の塊
+          
+          // 数字の塊から必要なデータを順番に切り出す
+          // 例: 109100002021313792...
+          // 得点は最初の5桁 (109.10)
+          const score = (parseFloat(dataStr.substring(0, 5)) / 100).toFixed(2);
+          
+          // 後ろから遡ってBやSを特定する（競輪データの並び規則を活用）
+          // 末尾の「92」は倍率や定型句なので、その前にあるBやSを拾う
+          // ※ユタカのデータは末尾付近にB(バック)とS(スタンディング)が並ぶ
+          const b = Number(dataStr.slice(-6, -4)) || 0; 
+          const s = Number(dataStr.slice(-8, -6)) || 0;
+          
           rows.push({
             car: carCount++,
-            score: (parseFloat(scoreStr) / 100).toFixed(2),
-            b: Number(n[4]) || 0, s: Number(n[3]) || 0, style: '自在',
-            win: n[0] ? (parseFloat(n[0]) / 10).toFixed(1) : "0.0",
-            ren2: Number(n[1]) || 0, ren3: Number(n[2]) || 0
+            name: name,
+            score: score,
+            b: b,
+            s: s,
+            style: '自在', // 判定で埋める
+            win: (Number(dataStr.substring(5, 7)) || 0).toFixed(1),
+            ren2: Number(dataStr.substring(7, 9)) || 0,
+            ren3: Number(dataStr.substring(9, 11)) || 0
           });
+          
+          if (carCount > 9) break; // 9車立まで
         }
+        
         if (rows.length === 0) return null;
         return '車番,得点,B,S,脚質,勝率,2連対率,3連対率\n' + 
                rows.map(r => `${r.car},${r.score},${r.b},${r.s},${r.style},${r.win},${r.ren2},${r.ren3}`).join('\n');
       }
+
 
       function parseCSV(text) {
         const lines = text.trim().split('\n');
