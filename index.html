@@ -491,42 +491,50 @@
         return rows;
       }
 
-            function convertRawToCsv(raw) {
+                  function convertRawToCsv(raw) {
         const lines = splitLines(raw);
         let rows = [];
 
-        // --- 強力な正規表現で「詰まったデータ」から選手情報を抜き出す ---
-        // 名前、県名、年齢、得点、勝率...などの並びを推測して抽出
+        // 1. まずは従来のテーブル形式を試す
+        rows = convertTableStyle(lines);
+        if (rows.length > 0) return createCsvOutput(rows);
+
+        // 2. 従来のリンク形式を試す
+        rows = convertLinkedStyle(lines);
+        if (rows.length > 0) return createCsvOutput(rows);
+
+        // 3. 【新機能】詰まった1行データ（ユタカの最新形式）を解析
         const joined = lines.join(' ');
-        
-        // 選手名（漢字）+ 県名 + 得点（2-3桁）+ ... というパターンを探す
-        // ユタカが送ってくれた「内田英介東京44...」のような形式に対応
-        const regex = /([一-龠ぁ-んァ-ヶー]{2,})\s*([一-龠]{2,})\s*(\d{2})\s*(\d{2,3}(?:\.\d+)?)/g;
+        // パターン：名前(漢字) + 県名(漢字) + 年齢(2桁) + 得点(2-3桁) + 勝率など(数字の連続)
+        const blockRegex = /([一-龠]{2,})\s*([一-龠]{2,})\s*(\d{2})\s*(\d{2}\.\d{2})\s*([\d\.\s]+)/g;
         let m;
 
-        while ((m = regex.exec(joined)) !== null) {
-          const name = m[1];
-          const pref = m[2];
-          const age = m[3];
+        while ((m = blockRegex.exec(joined)) !== null) {
           const score = parseFloat(m[4]);
+          const tail = m[5]; // 得点より後ろの数字の塊
+          const nums = tail.match(/\d+(\.\d+)?/g) || [];
 
-          // スコアの後に続く数字の列から、勝率や対率を適当に割り振る（簡易版）
-          // 実際にはさらに細かい解析が必要だけど、まずは「行」として成立させる
-          rows.push({
-            car: rows.length + 1, // 仮の車番
-            score: score,
-            b: 0, s: 0, style: '両', // 仮のデータ
-            win: 10.0, ren2: 20.0, ren3: 30.0
-          });
+          // 詰まったデータから必要な数字を抽出（Winticketの並びに準拠）
+          if (nums.length >= 10) {
+            rows.push({
+              car: rows.length + 1,
+              score: score,
+              // インデックスはデータの並び順に合わせて調整
+              b: Number(nums[4]) || 0,
+              s: Number(nums[3]) || 0,
+              style: '両', // デフォルト
+              win: Number(nums[8]) || 0,
+              ren2: Number(nums[9]) || 0,
+              ren3: Number(nums[10]) || 0
+            });
+          }
         }
 
-        // もし上の解析でダメなら、既存のテーブル形式チェック（一応残す）
-        if (!rows.length) {
-            rows = convertTableStyle(lines);
-        }
+        return rows.length > 0 ? createCsvOutput(rows) : '';
+      }
 
-        if (!rows.length) return '';
-
+      // CSV出力用の補助関数（重複を避けるため）
+      function createCsvOutput(rows) {
         return [
           '車番,得点,B,S,脚質,勝率,2連対率,3連対率',
           ...rows.map(r => [
@@ -539,6 +547,7 @@
           ].join(','))
         ].join('\n');
       }
+
 
 
       function parseCSV(text) {
