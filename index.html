@@ -203,16 +203,49 @@
         });
       }
 
-      // --- 的中チェック ---
-      document.getElementById('checkHitBtn').addEventListener('click', () => {
+           // --- 的中チェック ---
+      document.getElementById('checkResultBtn').addEventListener('click', () => {
         const actual = document.getElementById('actualResult').value.trim();
         const hitRes = document.getElementById('hitResult');
-        // ここに以前の的中判定を維持
+        if (!actual) {
+          hitRes.className = 'muted';
+          hitRes.textContent = '結果を入力してください。';
+          return;
+        }
         hitRes.innerHTML = `<div class="hit-sub">判定実行: ${actual}</div>`;
       });
-    });
+
+      // --- クリアボタン（修正版） ---
+      document.getElementById('clearBtn').addEventListener('click', () => {
+        // すべての入力欄を空にする
+        document.getElementById('rawInput').value = '';
+        document.getElementById('csvInput').value = '';
+        document.getElementById('lineInput').value = '';
+        document.getElementById('actualResult').value = '';
+        
+        // 結果表示を隠して初期状態に戻す
+        const resultDiv = document.getElementById('result');
+        if (resultDiv) resultDiv.classList.add('hidden');
+        
+        const emptyDiv = document.getElementById('resultEmpty');
+        if (emptyDiv) emptyDiv.classList.remove('hidden');
+        
+        // 的中チェックの表示をリセット
+        const hitRes = document.getElementById('hitResult');
+        hitRes.innerHTML = '';
+        hitRes.className = 'muted';
+        hitRes.textContent = '結果を入れて「的中チェック」を押してください。';
+                // テーブルの中身を消す
+        const tbody = document.querySelector('#scoreTable tbody');
+        if (tbody) tbody.innerHTML = '';
+        
+        latestResult = null;
+      });
+
+    }); // DOMContentLoadedの閉じ
   </script>
 </body>
 </html>
+
 
 
