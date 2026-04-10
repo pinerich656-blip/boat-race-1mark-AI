@@ -104,34 +104,48 @@
       }
 
       // --- データ整形：数字の塊から脚質を自動判定 ---
-      function convertRawToCsv(raw) {
+            function convertRawToCsv(raw) {
+        // スペースを消して解析しやすくする
         const cleanRaw = raw.replace(/\s+/g, '');
         const rows = [];
-        const playerRegex = /([一-龠]{2,3})[一-龠]{2}\d{2}(\d{15,})/g;
+        
+        // 選手名（2〜4文字）+ 県名（2〜3文字）+ 年齢(2桁) + 期(2〜3桁) を目印に選手を特定
+        // その後の数字の羅列をキャッチする
+        const playerRegex = /([一-龠]{2,4})[一-龠]{2,3}\d{2}歳\d{2,3}期(\d+)/g;
         
         let m, carCount = 1;
         while ((m = playerRegex.exec(cleanRaw)) !== null) {
-          const dataStr = m[2]; 
+          const name = m[1];
+          const dataStr = m[2]; // ここに 10600910... などの数字が詰まっている
+
+          // ユタカのデータ構造に合わせて正確に切り出し
+          // 得点(10600) 勝率(09) 2連(10) 3連(73) S(4) B(10) くらいの並びを想定
           const score = (parseFloat(dataStr.substring(0, 5)) / 100).toFixed(2);
-          const win   = (parseFloat(dataStr.substring(5, 7))).toFixed(1);
+          const win   = parseFloat(dataStr.substring(5, 7)).toFixed(1);
           const ren2  = Number(dataStr.substring(7, 9)) || 0;
           const ren3  = Number(dataStr.substring(9, 11)) || 0;
-          const s = Number(dataStr.substring(11, 13)) || 0;
-          const b = Number(dataStr.substring(13, 15)) || 0;
+          const s     = Number(dataStr.substring(11, 12)) || 0; // Sは1桁の場合が多い
+          const b     = Number(dataStr.substring(12, 14)) || 0; // Bはその後
 
+          // 脚質はデータ内の漢字から推測（自力、追、両など）
           let style = '両';
-          if (b >= 2) style = '逃';
-          else if (b === 0 && ren2 > 10) style = '追';
+          if (cleanRaw.includes(name)) {
+            const context = cleanRaw.substr(cleanRaw.indexOf(name), 40);
+            if (context.includes('自力') || context.includes('逃')) style = '逃';
+            else if (context.includes('追') || context.includes('差')) style = '追';
+          }
 
           rows.push({
             car: carCount++, score: score, b: b, s: s, style: style, win: win, quinella: ren2, trio: ren3
           });
           if (carCount > 9) break;
         }
+        
         if (rows.length === 0) return null;
         return '車番,得点,B,S,脚質,勝率,2連対率,3連対率\n' + 
                rows.map(r => `${r.car},${r.score},${r.b},${r.s},${r.style},${r.win},${r.quinella},${r.trio}`).join('\n');
       }
+
 
       function parseCSV(text) {
         const lines = text.trim().split('\n');
