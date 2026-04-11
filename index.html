@@ -104,7 +104,7 @@
       }
 
       // --- データ整形：数字の塊から脚質を自動判定 ---
-      function convertRawToCsv(rawText) {
+    function convertRawToCsv(rawText) {
   const rows = [];
   const clean = rawText.replace(/[\r\n\t,]+/g, " ").replace(/　/g, " ").trim();
   const parts = clean.split(/\s+/).filter(Boolean);
@@ -112,71 +112,54 @@
   let i = 0;
   while (i < parts.length) {
     const item = parts[i];
-
-    // 漢字2文字以上を名前として認識（見出し語は徹底除外）
     if (/[一-龠]{2,}/.test(item) && !/選手名|競走得点|勝率|対率|倍率|脚質|地区|枠|車/.test(item)) {
       const name = item;
       let score = "0.00";
       let nums = [];
       let style = "両";
-      let segmentWords = [];
 
-      // 次の名前（または終了）までスキャン
       let j = i + 1;
       while (j < parts.length && !(/[一-龠]{2,}/.test(parts[j]) && !/愛知勢|武田|中村君|君|勢へ|徳島勢|関東勢|九州/.test(parts[j]))) {
         const val = parts[j];
-        segmentWords.push(val);
-
         if (/自力|逃|捲/.test(val)) style = "逃";
         else if (/追|差|マーク|番手|目標/.test(val)) style = "追";
         else if (/臨機応変/.test(val)) style = "両";
-
-        if (/^\d+(\.\d+)?$/.test(val)) {
-          nums.push(val);
-        }
+        if (/^\d+(\.\d+)?$/.test(val)) nums.push(val);
         j++;
       }
 
       if (nums.length >= 3) {
-        // 得点：60〜130の範囲の数字、もしくは小数点のついた4〜5桁を優先
+        // 得点を取得
         let foundScore = nums.find(n => (parseFloat(n) >= 60 && parseFloat(n) <= 130) || /^\d{2,3}\.\d{2}$/.test(n));
         score = foundScore ? parseFloat(foundScore).toFixed(2) : "0.00";
 
-        // 勝率・連対率：
-        // ギア比（80〜100）っぽい数字がある場合はその直前3つ。
-        // ない場合は、とにかく「数字リストの最後の方」にある3つを拾う
+        // 勝率・連対率：ギア比（80〜100）を無視して、その「手前」の3つを取る
+        // ギア比は通常データの最後にあるので、後ろからスキャンして85〜94を見つけたら除外
         let win = "0.0", ren2 = "0.0", ren3 = "0.0";
-        let gearIdx = nums.findIndex(n => parseFloat(n) >= 85 && parseFloat(n) <= 100);
-        
-        if (gearIdx >= 3) {
-          win = nums[gearIdx - 3];
-          ren2 = nums[gearIdx - 2];
-          ren3 = nums[gearIdx - 1];
-        } else if (nums.length >= 4) {
-          // ギア比が見つからない時の保険
-          win = nums[nums.length - 3];
-          ren2 = nums[nums.length - 2];
-          ren3 = nums[nums.length - 1];
+        let validNums = nums.filter(n => {
+            const val = parseFloat(n);
+            // 85.0〜94.0のギア比っぽい数字、かつ整数、または末尾の特定の数字を捨てる
+            return !(val >= 85 && val <= 94 && n.length <= 2);
+        });
+
+        if (validNums.length >= 3) {
+          ren3 = validNums[validNums.length - 1];
+          ren2 = validNums[validNums.length - 2];
+          win  = validNums[validNums.length - 3];
         }
 
         rows.push({
-          car: rows.length + 1,
-          score: score,
-          b: 0, s: 0, style: style,
+          car: rows.length + 1, score: score, b: 0, s: 0, style: style,
           win: win, quinella: ren2, trio: ren3
         });
       }
       i = j;
-    } else {
-      i++;
-    }
+    } else { i++; }
   }
-
-  if (rows.length === 0) return "エラー：解析できませんでした。";
-
   return '車番,得点,B,S,脚質,勝率,2連対率,3連対率\n' + 
          rows.map(r => `${r.car},${r.score},${r.b},${r.s},${r.style},${r.win},${r.quinella},${r.trio}`).join('\n');
 }
+
 
 
       function parseCSV(text) {
